@@ -1,6 +1,6 @@
 # Writeup for Parcham Forensics Second Challenge
 
-# step 1
+# Step 1
 After downloading the file we see this is xz formatted file\
 So try to open it with unxz command
 ```
@@ -16,7 +16,7 @@ $ file harBayte
 $ mv harBaye harBayte.pcap
 ```
 
-![pic-1](http://164.132.117.34/ForensicsSecondChallenge/1.png)
+![pic-1](http://164.132.117.34/ForensicsSecondChallenge/11.png)
 
 
 I used scapy (python packet manipulation tool) for exploring through the pcap packets
@@ -41,7 +41,7 @@ packets[0]
 packets[1]
 ```
 
-![pic-2](http://164.132.117.34/ForensicsSecondChallenge/2.png)
+![pic-2](http://164.132.117.34/ForensicsSecondChallenge/12.png)
 
 or
 ```
@@ -49,7 +49,7 @@ packets[0].show()
 packets[1].show()
 ```
 
-![pic-3](http://164.132.117.34/ForensicsSecondChallenge/3.png)
+![pic-3](http://164.132.117.34/ForensicsSecondChallenge/13.png)
 
 
 As we can see These packets are about downloading a file named 494a963e23bcdf3d4286a662fdf4e300 with partial content
@@ -77,7 +77,7 @@ Otherwise the server will respond with "416 Requested Range Not Satisfiable" mes
 
 As we can see there is one of these packets so we should ignore it during our writeups
 
-![pic-4](http://164.132.117.34/ForensicsSecondChallenge/4.png)
+![pic-4](http://164.132.117.34/ForensicsSecondChallenge/14.png)
 
 OK, enough of scapy :)
 
@@ -88,7 +88,7 @@ Don't forget to import scapy like this
 from scapy.all import *
 ```
 
-![pic-5](http://164.132.117.34/ForensicsSecondChallenge/5.png)
+![pic-5](http://164.132.117.34/ForensicsSecondChallenge/15.png)
 
 The summary of all works are like this:
 
@@ -109,10 +109,89 @@ The summary of all works are like this:
 
 As we can see we retrieved the png file and its md5sum is correct as it's name
 
-![pic-6](http://164.132.117.34/ForensicsSecondChallenge/6.png)
+![pic-6](http://164.132.117.34/ForensicsSecondChallenge/16.png)
 
-After opening the step1.png and crashing our system :) ( because the file is a 16000*16000 size png !!! ) we see this URL
+After opening the step1.png and crashing our system :) ( because the file is a 16000.16000 size png !!! ) we see this URL
 ```
 https://parcham.io/challenges/forensics/d66a85f8faaf4968fe5aa29a02c3735898522e3d
 ```
 Now the second step begins
+
+# Step 2
+After opening the url we get a file named d66a85f8faaf4968fe5aa29a02c3735898522e3d
+And we see the type of file is ZIP Archive 
+
+![pic-21](http://164.132.117.34/ForensicsSecondChallenge/21.png)
+
+
+So try to unzip it but it needs password\
+The first thing I tried was bruteforcing the password\
+But no sucess never ever\
+I tried many wordlists and even online cracking tools but nothing.
+
+After that I used binwalk and zipinfo on the file to see some info
+```
+$ binwalk d66a85f8faaf4968fe5aa29a02c3735898522e3d.zip 
+$ zipinfo d66a85f8faaf4968fe5aa29a02c3735898522e3d.zip
+```
+![pic-22](http://164.132.117.34/ForensicsSecondChallenge/22.png)
+
+
+As we see there are 2 files
+
+```
+secret_file/494a963e23bcdf3d4286a662fdf4e300
+secret_file/top_secret
+```
+
+The defN keywork from zipinfo output means the files are compressed\
+The BX(Capital B) from zipinfo output means the files are encrypted
+
+It was interesting for me that the file secret_file/494a963e23bcdf3d4286a662fdf4e300 is exactly the url being downloaded in step 1\
+And if we look deeper the number of bytes of file secret_file/494a963e23bcdf3d4286a662fdf4e300 is exactly 1911251 which is the size of our png file we recovered in step 1\
+So we conclude that this file is exactly the step1.png file we recovered from  previous step\
+I thought a lot in this phase what can I do with this hint\
+It's obviously intednted that this file is inside encypted zip archaive\
+Because it was my first time doing forensics challenge I was not familiar with know techniques we can do for encypted zip files\
+After some thinking I reached a familiar techniues in cryptography attacks which is like this
+We have plain text message (M)\
+We have cipher text message (C)\
+We can recover the key (K) which transforms M to C
+
+That is a famous cryptograpchy attack which is performed by having a know plain text (M) and a cipher text (C)
+
+So I thought I had a clue and googled about it with adding zip keyword\
+I found a tool named [bkcrack](https://github.com/kimci86/bkcrack) which automatically does this attack on encypted zip files with having known plain zip file
+
+![pic-23](http://164.132.117.34/ForensicsSecondChallenge/23.png)
+
+The whole things we should do is like this
+
+1) zip step1.png file with no passwords into step1.zip
+```
+$ zip step1.zip step1.png 
+```
+
+2 run bkcrack to recover keys
+```
+$ bkcrack -C d66a85f8faaf4968fe5aa29a02c3735898522e3d.zip -c secret_file/494a963e23bcdf3d4286a662fdf4e300 -P step1.zip -p step1.png
+```
+
+3) run bkcrack to decipher the topsecret file and store it as compressed data
+```
+$ bkcrack -C d66a85f8faaf4968fe5aa29a02c3735898522e3d.zip -c secret_file/top_secret -k 1d2ab3ea 8503eed0 df1eab08 -d topsecret.deciphered
+```
+
+4) run a tool named inflate.py inside tools directory of bkcrack to decompress the topsecret.deciphered
+```
+python <path to bkcrack git repo>/tools/inflate.py < topsecret.deciphered > topsecret
+```
+![pic-24](http://164.132.117.34/ForensicsSecondChallenge/24.png)
+![pic-25](http://164.132.117.34/ForensicsSecondChallenge/25.png)
+
+
+And that's it we recovered step2 file which is a png file \
+If we open the png we see a url which leads us to step3
+```
+https://parcham.io/challenges/forensics/04926e840fbb43d8f097aa337a49c20fcbc99703
+```
