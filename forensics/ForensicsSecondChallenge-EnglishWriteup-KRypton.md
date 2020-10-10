@@ -1,5 +1,9 @@
 # Writeup for Parcham Forensics Second Challenge
 
+```
+NOTES : For a small hint in step 3,4 and all parts of step 5 (final), I used Parcham official [writeup](https://parcham.io/writeups/forensics2/writeup.html)
+```
+
 # Step 1
 After downloading the file we see this is xz formatted file\
 So try to open it with unxz command
@@ -62,8 +66,9 @@ file url downloading : /secret_file/494a963e23bcdf3d4286a662fdf4e300
 files indices : 0-1911250 (whole length of 1911251 bytes)
 ```
 
-After some googling about partail content we realize the client requests for each byte range of content with this header
+After some googling about partial content we realize the client requests for each byte range of content with this header
 ```
+HTTP/1.1 206 Partial Content
 bytes=1369042-1369153
 ```
 From client vision This means  "I want bytes of the content range from 1369042 to 1369153"\
@@ -143,7 +148,7 @@ secret_file/494a963e23bcdf3d4286a662fdf4e300
 secret_file/top_secret
 ```
 
-The defN keywork from zipinfo output means the files are compressed\
+The defN keyword from zipinfo output means the files are compressed\
 The BX(Capital B) from zipinfo output means the files are encrypted
 
 It was interesting for me that the file secret_file/494a963e23bcdf3d4286a662fdf4e300 is exactly the url being downloaded in step 1\
@@ -154,8 +159,8 @@ It's obviously intednted that this file is inside encypted zip archaive\
 Because it was my first time doing forensics challenge I was not familiar with known techniques we can do for encypted zip files\
 After some thinking I reached a familiar technique in cryptography attacks which is like this
 ```
-We have plain text message (M)\
-We have cipher text message (C)\
+We have plain text message (M)
+We have cipher text message (C)
 We can recover the key (K) which transforms M to C
 ```
 That is a famous cryptograpchy attack which is performed by having a know plain text (M) and a cipher text (C)
@@ -225,7 +230,6 @@ If we open the step3.png we see a new url which leads us to step 4
 https://parcham.io/challenges/forensics/2f0876d6ec354e314a0cd1f2c7c92bc1341a4006
 ```
 
-For some parts of step 4 and all final step I'd use parcham official writeup
 
 # Step 4
 
@@ -240,10 +244,10 @@ $ hexedit 2f0876d6ec354e314a0cd1f2c7c92bc1341a4006
 ![pic-42](http://164.132.117.34/ForensicsSecondChallenge/42.png)
 
 We see there is some sort of magic number (ninizip 0.09 alpha)\
-After some search about it, we realize that it's a zipping format named [NanoZip](https://archive.org/download/nanozip.net)\
+After doing some searches about it, We realize that it's a zipping format named [NanoZip](https://archive.org/download/nanozip.net)\
 But it seems the magic numbers have been changed or corrupted\
 So first of all we should build a valid nanozip archive and compare and fix the corrupted bytes\
-For this we use nz command which performs nanozip archive stuff (USE 32 BIT VERSION)
+For this we use [nz](https://archive.org/download/nanozip.net) command which performs nanozip archive stuff (USE 32 BIT VERSION)
 
 ```
 $ touch test.txt
@@ -256,7 +260,7 @@ If we open test.nz in hexedit we can see the correct bytes of nano zip archive
 ![pic-44](http://164.132.117.34/ForensicsSecondChallenge/44.png)
 
 So we change the first bytes of our main file to correct values (AE 01 4E 61  6E 6F 5A 69  70 20 30 2E  30 39 20 61  6C 70 68 61  1F 0F 09 05)\
-So we fix the bytes with these commands
+For fixing the bytes we use these commands
 ```
 $ dd if=2f0876d6ec354e314a0cd1f2c7c92bc1341a4006 of=step4_data.nz bs=1 skip=22
 python -c "print(b'\xAE\x01\x4E\x61\x6E\x6F\x5A\x69\x70\x20\x30\x2E\x30\x39\x20\x61\x6C\x70\x68\x61\x1F\x0F\x09\x05'+open('step4_data.nz', 'rb').read())" > step4.nz
