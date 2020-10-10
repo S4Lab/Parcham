@@ -21,7 +21,7 @@ $ mv harBaye harBayte.pcap
 
 I used scapy (python packet manipulation tool) for exploring through the pcap packets
 ```
-$ scapy3
+$ scapy
 ```
 
 We can read whole packets with rdpcap function
@@ -66,23 +66,22 @@ After some googling about partail content we realize the client requests for eac
 ```
 bytes=1369042-1369153
 ```
-From client vision This means  "I want bytes of the content range from 1369042 to 1369153"
-
-If The bytes range requested by client are satisfiable by server, the server with respond to client with the content requested and a specified header
+From client vision This means  "I want bytes of the content range from 1369042 to 1369153"\
+If The bytes range requested by client is satisfiable by server, the server with respond to client with the content requested and a specified header
 ```
 Content-Range: bytes 1369042-1369153/1911251
 ```
 
 Otherwise the server will respond with "416 Requested Range Not Satisfiable" message
 
-As we can see there is one of these packets so we should ignore it during our writeups
+As we can see there is one of these packets so we should ignore it
 
 ![pic-4](http://164.132.117.34/ForensicsSecondChallenge/14.png)
 
 OK, enough of scapy :)
 
-Now we wanna merge all contents recieved by our client "Parcham Downloder"
-For doing this we use scapy library in python scripts like below
+Now we wanna merge all contents recieved by our client "Parcham Downloder"\
+For doing this we use scapy library in python scripts like below\
 Don't forget to import scapy like this
 ```
 from scapy.all import *
@@ -98,7 +97,7 @@ The summary of all works are like this:
        The key is index of our content from 0 to 1911250
        The value is value of that index in main content
        (for example the value of index of 777402 is '\xec')
- 3) Loop inside packets for just the response sent by server and  including the "206 Partial" response
+ 3) Loop inside packets for the responses sent by server and including the "206 Partial" response
  4) Parsing the indices and data sent by server and replacing in payload dict (index : content)
  5) Another extra for loop just to check if there is a conflict between overlapped content bytes
        There is no conflict :) so you can remove this for loop
@@ -107,7 +106,7 @@ The summary of all works are like this:
  8) Finally we write the values of payload dictionary (which contains bytes of our content) in step1.png file
 ```
 
-As we can see we retrieved the png file and its md5sum is correct as it's name
+As we can see we recovered the png file and its md5sum is correct as it's name
 
 ![pic-6](http://164.132.117.34/ForensicsSecondChallenge/16.png)
 
@@ -152,12 +151,13 @@ And if we look deeper the number of bytes of file secret_file/494a963e23bcdf3d42
 So we conclude that this file is exactly the step1.png file we recovered from  previous step\
 I thought a lot in this phase what can I do with this hint\
 It's obviously intednted that this file is inside encypted zip archaive\
-Because it was my first time doing forensics challenge I was not familiar with know techniques we can do for encypted zip files\
-After some thinking I reached a familiar techniues in cryptography attacks which is like this
+Because it was my first time doing forensics challenge I was not familiar with known techniques we can do for encypted zip files\
+After some thinking I reached a familiar technique in cryptography attacks which is like this
+```
 We have plain text message (M)\
 We have cipher text message (C)\
 We can recover the key (K) which transforms M to C
-
+```
 That is a famous cryptograpchy attack which is performed by having a know plain text (M) and a cipher text (C)
 
 So I thought I had a clue and googled about it with adding zip keyword\
@@ -177,7 +177,7 @@ $ zip step1.zip step1.png
 $ bkcrack -C d66a85f8faaf4968fe5aa29a02c3735898522e3d.zip -c secret_file/494a963e23bcdf3d4286a662fdf4e300 -P step1.zip -p step1.png
 ```
 
-3) run bkcrack to decipher the topsecret file and store it as compressed data
+3) run bkcrack with key obtained from previous command to decipher the topsecret file and store it as compressed data
 ```
 $ bkcrack -C d66a85f8faaf4968fe5aa29a02c3735898522e3d.zip -c secret_file/top_secret -k 1d2ab3ea 8503eed0 df1eab08 -d topsecret.deciphered
 ```
@@ -240,7 +240,7 @@ $ hexedit 2f0876d6ec354e314a0cd1f2c7c92bc1341a4006
 ![pic-42](http://164.132.117.34/ForensicsSecondChallenge/42.png)
 
 We see there is some sort of magic number (ninizip 0.09 alpha)\
-After some search about it we realize that it's some zipping format named [NanoZip](https://archive.org/download/nanozip.net)\
+After some search about it, we realize that it's a zipping format named [NanoZip](https://archive.org/download/nanozip.net)\
 But it seems the magic numbers have been changed or corrupted\
 So first of all we should build a valid nanozip archive and compare and fix the corrupted bytes\
 For this we use nz command which performs nanozip archive stuff (USE 32 BIT VERSION)
@@ -270,7 +270,8 @@ $ nz l step_4.nz
 
 There is a 20 GB file named msg (Ignore it)\
 So we extract the 8e76a7fd8a22e35fc12feaf7e2504b1f file which is starting at offset 0x29d7 (10711 decimal)\
-If we look deep into our main archive file we realize that the file 8e76a7fd8a22e35fc12feaf7e2504b1f is a nanozip archive\
+If we look deep into our main archive file we realize that the file 8e76a7fd8a22e35fc12feaf7e2504b1f is a nanozip archive
+
 ![pic-45](http://164.132.117.34/ForensicsSecondChallenge/45.png)
 
 So we wanna extract just that file which starts at offset 0x29d7 (10711)
@@ -291,8 +292,8 @@ https://parcham.io/challenges/forensics/604e54fa87065a7c5a52f96eae1bf63ad5df09eb
 ```
 
 # Step 5 (Final)
-After downloading file we get a png which says "You've got already the flag"! Seriously !?\
-It means The flag is hided inside previous steps or in case of mix of all steps !\
+After downloading file we get a png which says "You've already got the flag"! Seriously :) !?\
+It means The flag is hidden inside previous steps or in case of mix of all steps !\
 Maybe the flag is combination of all pngs we've got in each step (1-5)\
 So we wanna use pngsplit as mentioned in parcham official writeup
 ```
