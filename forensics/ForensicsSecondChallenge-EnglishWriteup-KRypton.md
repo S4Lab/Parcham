@@ -1,8 +1,8 @@
 # Writeup for Parcham Forensics Second Challenge
 
-```
-NOTES : For a small hint in step 3,4 and all parts of step 5 (final), I used Parcham official [writeup](https://parcham.io/writeups/forensics2/writeup.html)
-```
+
+__NOTE : For a small hint in step 3,4 and all parts of step 5 (final), I used Parcham official [writeup](https://parcham.io/writeups/forensics2/writeup.html)__
+
 
 # Step 1
 After downloading the file we see this is xz formatted file\
