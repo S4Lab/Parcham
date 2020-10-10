@@ -9,7 +9,7 @@ After downloading the file we see this is xz formatted file\
 So try to open it with unxz command
 ```
 $ file harBayte.xz
-$ unxz harByte.xz
+$ unxz harBayte.xz
 ```
 
 After  uncompressing the file we see the file harBayte\
@@ -17,7 +17,7 @@ So we try to determine the file type with file command and we see that's a pcap 
 
 ```
 $ file harBayte
-$ mv harBaye harBayte.pcap
+$ mv harBayte harBayte.pcap
 ```
 
 ![pic-1](http://164.132.117.34/ForensicsSecondChallenge/11.png)
