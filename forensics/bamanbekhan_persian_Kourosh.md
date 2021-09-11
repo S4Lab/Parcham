@@ -91,4 +91,4 @@ $ cd ../
 ![تصویر۹](http://164.132.117.34/bamanbekhan/9.png)
 
 با احترام 
-> KRypton (KooroshRZ)
+> (KooroshRZ)

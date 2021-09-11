@@ -324,4 +324,4 @@ parcham{Th13_0n3_wa5_harder_be_patient_&_learn!!}
 ```
 
 Regards
-> KRypton (KooroshRZ)
+> (KooroshRZ)

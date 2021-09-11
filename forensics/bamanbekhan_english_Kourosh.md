@@ -92,4 +92,4 @@ After openning the rand_ file inside folder with right permissions, we get the p
 ![pic-9](http://164.132.117.34/bamanbekhan/9.png)
 
 Regards
-> KRypton (KooroshRZ)
+> (KooroshRZ)
